@@ -18,27 +18,31 @@ type of consumption:  staging, refund, consumption, staging and refund happen as
 
 import pandas as pd
 from random import choice
+import math
+
 seed = '1234567890'
 
 
 def generate_account(n, num_len):
+    if math.log(n, 10) >= num_len/2:
+        print('the amount of accounts is too large and with probability generate same series! the method will '
+              'finally unique, so the total num will change.')
     name_list = []
     for i in range(n):
         name = ''
         for j in range(num_len):
             name = name+choice(seed)
         name_list.append(name)
+    name_list = list(set(name_list))
+    print(len(name_list))
     return name_list
 
 
 # def generate_data(total):
 
 
-
-
-
 if __name__ == '__main__':
-    x = generate_account(100, 8)
-    print(x)
+    accounts = generate_account(1000, 8)
+
 
 
