@@ -14,6 +14,10 @@ on weekend, another three.
 the amount of consumption: large and small, the distribution will be Thick tail normal distribution
 消费类型：分为分期、退款、消费
 type of consumption:  staging, refund, consumption, staging and refund happen as a normal distribution with low average
+
+生成规则：
+账户号不重复
+生成消费记录后
 """
 
 import pandas as pd
@@ -25,8 +29,8 @@ seed = '1234567890'
 
 def generate_account(n, num_len):
     if math.log(n, 10) >= num_len/2:
-        print('the amount of accounts is too large and with probability generate same series! the method will '
-              'finally unique, so the total num will change.')
+        print('the amount of accounts is too large so that with probability to generate same series! the list will '
+              'finally unique. the total num would less than you expect!.')
     name_list = []
     for i in range(n):
         name = ''
@@ -38,7 +42,10 @@ def generate_account(n, num_len):
     return name_list
 
 
-# def generate_data(total):
+def generate_record(total):
+
+
+
 
 
 if __name__ == '__main__':
