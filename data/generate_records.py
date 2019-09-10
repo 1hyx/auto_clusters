@@ -25,18 +25,20 @@ from scipy.stats import norm
 import numpy as np
 from random import choice
 import math
-from matplotlib import pyplot as plt
+import random
+from data import accounts_list_with_differ_num
 
 
 seed = '1234567890'
 year = ['2016', '2017', '2018', '2019']
-month = [str(i) for i in range(1,13,1)]
-day = [31,30,31,28,31,30,31,31,30,31,30,31]
-hour = [str(h) for h in range(0,24,1)]
-minute = [str(m) for m in range(0,60,1)]
-second = [str(s) for s in range(0,60,1)]
+month = [str(i) for i in range(1, 13, 1)]
+day = [31, 30, 31, 28, 31, 30, 31, 31, 30, 31, 30, 31]
+hour = [str(h) for h in range(0, 24, 1)]
+minute = [str(m) for m in range(0, 60, 1)]
+second = [str(s) for s in range(0, 60, 1)]
 
 
+# 生成账户号
 def generate_account(n, num_len):
     if math.log(n, 10) >= num_len/2:
         print('the amount of accounts is too large so that with probability to generate same series! the list will '
@@ -61,6 +63,18 @@ distribution_list =['type':'normal','args':['mean':1,'stand_var':1]],['type':'no
 """
 
 
+# 生成时间分秒
+def generate_minute_second(num):
+    times = max(int(num / 60)+1, 1)
+    minute_list = random.sample(minute, 60)
+    second_list = random.sample(second, 60)
+    min_sec = list(map(lambda x, y: x + 'm-'+y+'s', minute_list, second_list))
+    min_sec_list = []
+    for _ in range(times):
+        min_sec_list = min_sec_list + min_sec
+    return min_sec_list
+
+
 # 基础版本
 # 假设1 每天的消费总量是一样的 暂时不区分工作日和非工作日
 # 假设2 每天的订单发生时间是基于三个正态分布的总和
@@ -74,27 +88,54 @@ def generate_hour_time(total):
     x1[0:20] = x2[4:24]
     x3[5:24] = x2[0:19]
     x4[8:24] = x2[0:16]
-    sum_result = (x1+x2+x3+x4)*total/3
-    result = [int(item) for item in sum_result]
-    return result
+    sum_result = (x1+x2+x3+x4)*total/4
+    hour_order_num = [int(item) for item in sum_result]
+    hour_order_num[0] = max(total - sum(hour_order_num[1:]), 0)
+    time_list = []
+    for i, item in enumerate(hour_order_num):
+        temp_min_sec = generate_minute_second(item)
+        if len(temp_min_sec) > 0:
+            hour_min_sec = list(map(lambda x: str(i)+'h-'+x, temp_min_sec))
+            print(len(hour_order_num))
+            time_list = time_list + hour_min_sec
+            print(len(time_list))
+    return time_list
 
 
 # 每个人的消费习惯不一样
-# 假设1 人群的消费行为是稳定的，同时人群的消费频率分布符合正态分布，均值3，标准差3
-def account_record_num(account_num):
+# 假设1 人群的消费行为是稳定的，同时人群的消费频率分布符合正态分布，均值5，标准差2
+def account_record_num(accounts, record_num):
     acc_num = []
-    for acc in account_num:
-        num = max(int(np.random.normal(3, 3)), 0)
+    acc_money = []
+    times = record_num/len(accounts)
+    for acc in accounts:
+        num = max(int(np.random.normal(5, 2)*times), 0)
+        if num > 5:
+            money = 500 + int(choice(seed))*100 - random.random()*10
+        else:
+            money = 1000 - int(random.choice(seed))*100 + random.random()*10
         acc_num.append(num)
-    acc_prob = acc_num/sum(acc_num)
-    return acc_prob
+        acc_money.append(money)
+    return acc_num, acc_money
 
 
-# def generate_record(total):
+# 生成
+def generate_record(account_num, account_len, record_num,save_path):
+    accounts = generate_account(account_num, account_len)
+    person_num, person_money = account_record_num(accounts, record_num)
+    account_num_list, account_money_list = accounts_list_with_differ_num(accounts, person_num, person_money)
+    accounts_df = pd.DataFrame(data=account_num_list, columns=['account'])
+    accounts_df['money'] = account_money_list
+    accounts_df = accounts_df.sample(n=record_num, random_state=42)
+    accounts_df.index = range(record_num)
+    record_time = random.sample(generate_hour_time(record_num), record_num)
+    accounts_df['time'] = record_time
+    accounts_df.to_csv(save_path, index=None)
+    return accounts_df
 
 
 if __name__ == '__main__':
-    accounts = generate_account(1000, 8)
-    a = generate_hour_time(10000)
+    record_final = generate_record(10000, 8, 10000, '../generate_data/file2.csv')
+    print(record_final)
 
 
