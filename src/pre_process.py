@@ -11,7 +11,7 @@ import pandas as pd
 
 def read_data(file_path):
     suffix = file_path.split('.')[1]
-    if suffix == '.csv' or suffix == '.txt' :
+    if suffix == '.csv' or suffix == '.txt':
         data = pd.read_csv(file_path)
         return data
     else:
@@ -19,8 +19,8 @@ def read_data(file_path):
         return data
 
 
-
 np.random.seed(0)
+
 
 # Generate datasets. We choose the size big enough to see the scalability
 # of the algorithms, but not too big to avoid too long running times
@@ -110,8 +110,3 @@ for i_dataset, dataset in enumerate(datasets):
         plot_num += 1
 
 plt.show()
-
-
-
-
-if __name__ == '__main__':
