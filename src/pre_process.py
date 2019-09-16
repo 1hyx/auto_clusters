@@ -9,14 +9,24 @@ from sklearn.preprocessing import StandardScaler
 import pandas as pd
 
 
-def read_data(file_path):
-    suffix = file_path.split('.')[1]
-    if suffix == '.csv' or suffix == '.txt':
+# 统计一下历史消费记录啥的
+def group_by(file_path, columns):
+    suffix = file_path.split('.')[-1]
+    if suffix == 'csv' or suffix == 'txt':
         data = pd.read_csv(file_path)
-        return data
     else:
         data = pd.read_excel(file_path)
-        return data
+    data_count = data['money'].groupby(data[columns]).count()
+    data_count['account'] = data[list(data_count.index)]
+    return data_count
+
+
+if __name__ == '__main__':
+    file_path = '../generate_data/interval_data.csv'
+    e = group_by(file_path, 'account')
+    print(e)
+
+
 
 
 np.random.seed(0)

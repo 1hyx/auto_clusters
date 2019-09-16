@@ -155,11 +155,11 @@ def year_month_day_hour_minute_second(start, end, acc_num, acc_len, num_per_day,
         time_list = list(map(lambda x: str(d)[0:10]+':'+x, record_time))
         df_temp['time'] = time_list
         record = record.append(df_temp, ignore_index=True, sort=False)
-    record.to_csv(save_path)
+    record.to_csv(save_path, index=None)
     return record
 
 
 if __name__ == '__main__':
     # record_final = generate_record(10000, 8, 10000, '../generate_data/file2.csv')
-    records = year_month_day_hour_minute_second('2019/5/31', '2019/8/31', 100, 6, 1000, '../generate_data/'
+    records = year_month_day_hour_minute_second('2019/5/31', '2019/8/31', 1000, 6, 10000, '../generate_data/'
                                                                                         'interval_data.csv')
