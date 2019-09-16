@@ -50,7 +50,6 @@ def generate_account(n, num_len):
             name = name+choice(seed)
         name_list.append(name)
     name_list = list(set(name_list))
-    print(len(name_list))
     return name_list
 
 
@@ -68,10 +67,14 @@ def generate_minute_second(num):
     times = max(int(num / 60)+1, 1)
     minute_list = random.sample(minute, 60)
     second_list = random.sample(second, 60)
-    min_sec = list(map(lambda x, y: x + 'm-'+y+'s', minute_list, second_list))
-    min_sec_list = []
+    min_list = []
+    sec_list = []
     for _ in range(times):
-        min_sec_list = min_sec_list + min_sec
+        min_list = min_list + minute_list
+        sec_list = sec_list + second_list
+    min_list = random.sample(min_list, num)
+    sec_list = random.sample(sec_list, num)
+    min_sec_list = list(map(lambda x, y: x + 'm:'+y+'s', min_list, sec_list))
     return min_sec_list
 
 
@@ -95,10 +98,8 @@ def generate_hour_time(total):
     for i, item in enumerate(hour_order_num):
         temp_min_sec = generate_minute_second(item)
         if len(temp_min_sec) > 0:
-            hour_min_sec = list(map(lambda x: str(i)+'h-'+x, temp_min_sec))
-            print(len(hour_order_num))
+            hour_min_sec = list(map(lambda x: str(i)+'h:'+x, temp_min_sec))
             time_list = time_list + hour_min_sec
-            print(len(time_list))
     return time_list
 
 
