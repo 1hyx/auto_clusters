@@ -26,13 +26,11 @@ import numpy as np
 from random import choice
 import math
 import random
+import datetime
 from data import accounts_list_with_differ_num
 
 
 seed = '1234567890'
-year = ['2016', '2017', '2018', '2019']
-month = [str(i) for i in range(1, 13, 1)]
-day = [31, 30, 31, 28, 31, 30, 31, 31, 30, 31, 30, 31]
 hour = [str(h) for h in range(0, 24, 1)]
 minute = [str(m) for m in range(0, 60, 1)]
 second = [str(s) for s in range(0, 60, 1)]
@@ -62,7 +60,7 @@ distribution_list =['type':'normal','args':['mean':1,'stand_var':1]],['type':'no
 """
 
 
-# 生成时间分秒
+# 生成随机时间 分秒
 def generate_minute_second(num):
     times = max(int(num / 60)+1, 1)
     minute_list = random.sample(minute, 60)
@@ -78,7 +76,7 @@ def generate_minute_second(num):
     return min_sec_list
 
 
-# 基础版本
+# 生成在每个小时内发生的订单数 并组合成时分秒的日期字符串列表
 # 假设1 每天的消费总量是一样的 暂时不区分工作日和非工作日
 # 假设2 每天的订单发生时间是基于三个正态分布的总和
 def generate_hour_time(total):
@@ -103,8 +101,11 @@ def generate_hour_time(total):
     return time_list
 
 
-# 每个人的消费习惯不一样
+# 生成每个人每天的消费次数和消费金额
 # 假设1 人群的消费行为是稳定的，同时人群的消费频率分布符合正态分布，均值5，标准差2
+# todo 设置人群的不同消费patterns:固定时间消费时间及金额，随机消费时间及金额， 偶尔大额消费平时小额消费， 中额频繁消费
+# todo 设置仿真的消费记录，需要模拟消费明细，由于市场定价策略中结尾为.0,.9,.99,x9.9，.5,.2,.8较为常见
+# todo 购买物品的数量也有固定的patterns,1件，2件，3件 with probs: 0.3, 0.2, 0.3 其他 0.2
 def account_record_num(accounts, record_num):
     acc_num = []
     acc_money = []
@@ -120,8 +121,8 @@ def account_record_num(accounts, record_num):
     return acc_num, acc_money
 
 
-# 生成
-def generate_record(account_num, account_len, record_num,save_path):
+# 生成一天内的记录，分配每个人每次消费的金额
+def generate_record(account_num, account_len, record_num):
     accounts = generate_account(account_num, account_len)
     person_num, person_money = account_record_num(accounts, record_num)
     account_num_list, account_money_list = accounts_list_with_differ_num(accounts, person_num, person_money)
@@ -129,14 +130,36 @@ def generate_record(account_num, account_len, record_num,save_path):
     accounts_df['money'] = account_money_list
     accounts_df = accounts_df.sample(n=record_num, random_state=42)
     accounts_df.index = range(record_num)
-    record_time = random.sample(generate_hour_time(record_num), record_num)
-    accounts_df['time'] = record_time
-    accounts_df.to_csv(save_path, index=None)
     return accounts_df
 
 
+# 生成一段时间内的消费记录
+# todo 区分工作日和非工作日
+# todo 增加当出现某个价位的活动时的消费变化
+def year_month_day_hour_minute_second(start, end, acc_num, acc_len, num_per_day, save_path='../generate_data/interval'
+                                                                                           '_data.csv'):
+    start = datetime.datetime.strptime(start, '%Y/%m/%d')
+    end = datetime.datetime.strptime(end, '%Y/%m/%d')
+
+    def gen_dates(b_date, days):
+        day1 = datetime.timedelta(days=1)
+        for i in range(days):
+            yield b_date + day1 * i
+
+    day_data = []
+    record = pd.DataFrame(columns=['account', 'time', 'money'])
+    for d in gen_dates(start, (end - start).days):
+        day_data.append(d)
+        df_temp = generate_record(acc_num, acc_len, num_per_day)
+        record_time = random.sample(generate_hour_time(num_per_day), num_per_day)
+        time_list = list(map(lambda x: str(d)[0:10]+':'+x, record_time))
+        df_temp['time'] = time_list
+        record = record.append(df_temp, ignore_index=True, sort=False)
+    record.to_csv(save_path)
+    return record
+
+
 if __name__ == '__main__':
-    record_final = generate_record(10000, 8, 10000, '../generate_data/file2.csv')
-    print(record_final)
-
-
+    # record_final = generate_record(10000, 8, 10000, '../generate_data/file2.csv')
+    records = year_month_day_hour_minute_second('2019/5/31', '2019/8/31', 100, 6, 1000, '../generate_data/'
+                                                                                        'interval_data.csv')
